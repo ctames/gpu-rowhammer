@@ -3,28 +3,34 @@
 #include <stdlib.h>
 
 __global__ void kernel(int** addrs, int addr_count, int toggles) {
-	for (int i = 0; i < toggles; i++) {
-		for (int a = 0; i < addr_count; i++) {
-			asm("ld.global.cv r1 %0" : "r"(addrs[i]));
+	// for (int i = 0; i < toggles; i++) {
+		for (int a = 0; a < addr_count; a++) {
+			asm("ld.global.cv rd1, [%0];" : "=l"(addrs[a]));
 		}
-	}
+	//}
 }
 
 void hammer_attempt(int toggles, int addr_count, int mem_size, void* mem) {
 
+	printf("entered hammer_attempt\n");
 	// declare timer
 	GpuTimer timer;
 
 	// declare array of addresses and fill it with addresses in our allocated memory
 	int* addrs[addr_count];
 	for (int i = 0; i < addr_count; i++) {
-		int* new_addr = mem + (rand() % mem_size); 
+		int* new_addr = (int*) mem + (rand() % mem_size); 
 		addrs[i] = new_addr; 
 	}
 
 	// start timer, launch kernel, stop timer
+	printf("starting kernel\n");
 	timer.Start();
-	kernel(addrs, addr_count);
+	for (int i = 0; i < toggles; i++) {
+		printf("toggle %d\n", i);
+		kernel<<<1,1>>>(addrs, addr_count, toggles);
+	
+	}
 	timer.Stop();
 
 	// report time taken
@@ -34,7 +40,7 @@ void hammer_attempt(int toggles, int addr_count, int mem_size, void* mem) {
 	printf("checking for bit flips...\n");
 	int flips = 0;
 	int* pointer;
-	int* mem_end = (int*) (mem + mem_size);
+	int* mem_end = ((int*) mem + mem_size);
 	for (pointer = (int*) mem; pointer < mem_end; pointer++) {
 		int val = *pointer;
 		if (val != (int) 0xff) {
