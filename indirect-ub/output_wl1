@@ -1,0 +1,4 @@
+nodes: 82000000 sort=0 tbsize=256 blocks=112
+arrG: 0x42049a0000
+reading inputs/expand-52-26624x3-01-size1.wl (0)
+tid: 0 | node: 0 | n1: 1804289383 | n2: 846930886 | sum: -957358497 | x: 1

@@ -19,8 +19,7 @@ struct prog_opts {
 __global__ void test(int *arr, int N, int *offsets) {
   uint tid = threadIdx.x + blockIdx.x * blockDim.x;
   uint nthreads = blockDim.x * gridDim.x;
-  //printf("nthreads: %d\n", nthreads);
-	int sum = 0;
+  int sum = 0;
   clock_t s, e;
   int x = 0;
   s = clock64();
@@ -31,8 +30,7 @@ __global__ void test(int *arr, int N, int *offsets) {
     int n2 = arr[node+1];
     sum += n2 - n1;
     x++;
-	//printf("tid: %d | node: %d | n1: %d | n2: %d | sum: %d | x: %d\n", tid, node, n1, n2, sum, x);
-	}
+  }
 
   e = clock64();
 
@@ -87,14 +85,15 @@ int * read_offsets_snappy(const char *of, size_t *N, int sort) {
 
   fprintf(stderr, "Read %llu offsets from compressed file\n", *N);
 
-	/*	
-	for (int i = 0; i < *N; i++) {
-		printf("offset %d : %d\n", i, offsets[i]);
-	}
-	*/
-
   if(sort) {
     qsort(offsets, *N, sizeof(int), comparint);
+
+    if(*N < 10) {
+      for(int i = 0; i < *N; i++) {
+	printf("%d %d\n", offsets[i]);
+      }
+    }
+
   }
 
   return offsets;
@@ -131,11 +130,14 @@ int * read_offsets(const char *of, size_t *N, int sort) {
 
   if(sort) {
     qsort(offsets, *N, sizeof(int), comparint);
-  }
 
-	for (int i = 0; i < *N; i++) {
-		printf("offset %d : %d\n", i, offsets[i]);
-	}
+    if(*N < 10) {
+      for(int i = 0; i < *N; i++) {
+	printf("%d %d\n", offsets[i]);
+      }
+    }
+
+  }
 
   return offsets;
 }
@@ -213,8 +215,7 @@ int main(int argc, char *argv[]) {
     int *offsets = read_offsets_snappy(po.wlfiles[i], &N, po.sort);
     int *offsets_G;
 
-    
-	check_cuda(cudaMalloc(&offsets_G, N * sizeof(int)));  
+    check_cuda(cudaMalloc(&offsets_G, N * sizeof(int)));  
     check_cuda(cudaMemcpy(offsets_G, offsets, N * sizeof(int), cudaMemcpyHostToDevice));
 
     test<<<po.blocks, po.tbsize>>>(arrG, N, offsets_G);
@@ -224,6 +225,5 @@ int main(int argc, char *argv[]) {
     check_cuda(cudaDeviceSynchronize());
     check_cuda(cudaFree(offsets_G));
     free(offsets);
-	
   }
 }
