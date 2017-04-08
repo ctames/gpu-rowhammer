@@ -22,11 +22,12 @@ void check_error(cudaError_t cudaerr) {
 
 __global__ void fill_cache_twice_strideCLSIZE(int* vals) {
 	int sum; 
+	for (int t = 0; t < 10000000; t++) {
 	for (int i = 0; i < (2*CACHESIZE)/intsize; i += CLSIZE/intsize) {
 		int n1 = vals[i];
 		int n2 = vals[i+1];
 		sum += n2 - n1;
-	}
+	}}
 	vals[0] = sum;
 	//printf("first kernel\n");
 }
