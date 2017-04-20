@@ -22,18 +22,18 @@ void check_error(cudaError_t cudaerr) {
 }
 
 __global__ void fill_cache_stride(int* vals, int size, int stride, int iters) {
-	//uint tid = threadIdx.x + blockIdx.x * blockDim.x;
-	uint tid = 0; 
+	uint tid = threadIdx.x + blockIdx.x * blockDim.x;
+	uint nthreads = blockDim.x * gridDim.x; 
 	int sum;
-	//for (int t = 0; t < iters; t++) { 
-		for (int i = tid; i < size/intsize; i += (i*stride)) {
+	for (int t = 0; t < iters; t++) { 
+		for (int i = tid*stride; i < size/intsize; i += (nthreads*stride)) {
 			int n1 = vals[i];
 			//int n2 = vals[thread_i+1];
 			sum += n1;
 		}
 		vals[0] = sum;
 		//printf("first kernel\n");
-	//}
+	}
 }
 
 __global__ void fill_cache_stride_1thread(int* vals, int size, int stride) {
@@ -79,8 +79,8 @@ int main(int argc, char** argv) {
  		
 	GpuTimer timer1;
 	timer1.Start();
- 	//fill_cache_stride<<<1,1>>>(valsDevice, size, stride, iters); 
- 	fill_cache_stride_1thread<<<1, 1>>>(valsDevice, size, stride); 
+ 	fill_cache_stride<<<blocks, threads>>>(valsDevice, size, stride, iters); 
+ 	//fill_cache_stride_1thread<<<1, 1>>>(valsDevice, size, stride); 
  	check_error(cudaDeviceSynchronize());
 	timer1.Stop();
  	//check_error(cudaDeviceSynchronize());
